@@ -1,0 +1,41 @@
+name: Build Screen Recorder Pro 5 - Android APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ScreenRecorderPro5-build-source.tar.xz"
+      - ".github/workflows/screen-recorder-android.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android platform and build tools
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Extract application source
+        run: tar -xf ScreenRecorderPro5-build-source.tar.xz
+      - name: Build installable debug APK
+        working-directory: ScreenRecorderPro5-CrossPlatform/android
+        run: gradle assembleDebug --no-daemon
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScreenRecorderPro5-Android-APK
+          path: ScreenRecorderPro5-CrossPlatform/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14

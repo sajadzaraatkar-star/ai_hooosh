@@ -1,0 +1,36 @@
+name: Build Screen Recorder Pro 5 - Windows EXE
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ScreenRecorderPro5-build-source.tar.xz"
+      - ".github/workflows/screen-recorder-windows.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Extract application source
+        shell: pwsh
+        run: tar -xf ScreenRecorderPro5-build-source.tar.xz
+      - name: Install dependencies
+        working-directory: ScreenRecorderPro5-CrossPlatform/windows
+        run: npm install --no-audit --no-fund
+      - name: Build Windows installer and portable EXE
+        working-directory: ScreenRecorderPro5-CrossPlatform/windows
+        run: npm run dist:win
+      - name: Upload Windows EXE files
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScreenRecorderPro5-Windows-EXE
+          path: ScreenRecorderPro5-CrossPlatform/windows/dist/*.exe
+          if-no-files-found: error
+          retention-days: 14
